@@ -11,26 +11,41 @@ Reference:
 
 """
 
-import numpy as np
 from sklearn import svm
+
 from ..utils import metrics
+
 
 class SVM(object):
 
-    def __init__(self, penalty='l1', tol=0.1, C=1, dual=False, class_weight=None, 
-                 max_iter=100):
+    # def __init__(self, penalty='l1', tol=0.1, C=1, dual=False, class_weight=None,
+    #              max_iter=1000):
+    #     """ The Invariants Mining model for anomaly detection
+    #     Arguments
+    #     ---------
+    #     See SVM API: https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html
+    #
+    #     Attributes
+    #     ----------
+    #         classifier: object, the classifier for anomaly detection
+    #
+    #     """
+    #     self.classifier = svm.LinearSVC(penalty=penalty, tol=tol, C=C, dual=dual,
+    #                                     class_weight=class_weight, max_iter=max_iter)
+
+    def __init__(self, tol=0.1, C=1, class_weight=None,
+                 max_iter=-1, gamma=0.01):
         """ The Invariants Mining model for anomaly detection
         Arguments
         ---------
         See SVM API: https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html
-        
+
         Attributes
         ----------
             classifier: object, the classifier for anomaly detection
 
         """
-        self.classifier = svm.LinearSVC(penalty=penalty, tol=tol, C=C, dual=dual, 
-                                        class_weight=class_weight, max_iter=max_iter)
+        self.classifier = svm.SVC(tol=tol, C=C, gamma=gamma, class_weight=class_weight, max_iter=max_iter)
 
     def fit(self, X, y):
         """
@@ -52,7 +67,7 @@ class SVM(object):
         -------
             y_pred: ndarray, the predicted label vector of shape (num_instances,)
         """
-        
+
         y_pred = self.classifier.predict(X)
         return y_pred
 
