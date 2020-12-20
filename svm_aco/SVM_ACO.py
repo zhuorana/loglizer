@@ -41,6 +41,6 @@ if __name__ == '__main__':
             if precision > best_precision:
                 best_precision = precision
     toc = time.time()
-    print(f"Spent {toc - tic:0.4f} seconds")
+    print(f"Total execution time is:  {toc - tic:0.4f} seconds.")
 
-    print(best_precision)
+    print("Precision of the trained model is: " + str(best_precision) + ".")

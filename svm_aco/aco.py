@@ -146,7 +146,7 @@ class Ant:
 
 ROW = 10
 COLUMN = 10
-NUM_ANTS = 3
+NUM_ANTS = 7
 C_VALUE_RANGE_STARTING_INDEX = -5
 GAMMA_VALUE_RANGE_STARTING_INDEX = -5
 MAX_ITERATION = 10
@@ -202,7 +202,7 @@ def set_current_precision(_ant):
 
 
 if __name__ == '__main__':
-    #  8.1946
+    # To record the time spent by ACO optimal C-gamma pair finding
     tic = time.time()
 
     aco.init_matrix()
@@ -246,8 +246,11 @@ if __name__ == '__main__':
 
     toc = time.time()
 
-    print(f"Spent {toc - tic:0.4f} seconds")
+    print(f"Total execution time is: {toc - tic:0.4f} seconds.")
 
-    print(best_precision, get_c_gamma(best_x, best_y))
-    print(best_x, best_y)
+    print("The best precision achieved is: " + str(best_precision) + "." )
+    print("Achieved by the optimal C-gamma pair: " + str(get_c_gamma(best_x, best_y)) + ".")
+    print("The grid coordination for above optimal C-gamma pair is: " + str(best_x) + "," + str(best_y) + ".")
+
+    print(aco.svm_training_result_matrix)
 
