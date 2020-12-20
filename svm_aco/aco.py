@@ -1,6 +1,7 @@
 import random
 from loglizer.models import SVM
 from loglizer import dataloader, preprocessing
+import time
 
 
 class ACO:
@@ -33,6 +34,12 @@ class ACO:
             x, y = _ant.get_position_x_y()
             # mark as occupied
             self.global_ant_position_matrix[x][y] = 1
+
+    def pheromone_evaporate(self):
+        for index_x in range(1, ROW + 1):
+            for index_y in range(1, COLUMN + 1):
+                self.global_pheromone_matrix[index_x][index_y] = \
+                    self.global_pheromone_matrix[index_x][index_y] * EVAPORATE_FACTOR
 
 
 class Ant:
@@ -102,8 +109,6 @@ class Ant:
         for neighbour in possible_neighbour_positions:
             if neighbour not in self.visited:
                 result.append(neighbour)
-            else:
-                print("You have already visited this position.")
         return result
 
     def get_next_move_by_pheromone(self, ant_position_matrix, pheromone_matrix):
@@ -128,7 +133,7 @@ class Ant:
         raise Exception("shit")
 
     def __str__(self):
-        return str(self.current_position_x) + " " + str(self.current_position_y) + str(self.visited)
+        return str(self.current_position_x) + " " + str(self.current_position_y) + " Visited: " + str(self.visited)
 
     def __eq__(self, other):
         if not isinstance(other, Ant):
@@ -144,6 +149,8 @@ COLUMN = 10
 NUM_ANTS = 3
 C_VALUE_RANGE_STARTING_INDEX = -5
 GAMMA_VALUE_RANGE_STARTING_INDEX = -5
+MAX_ITERATION = 10
+EVAPORATE_FACTOR = 0.9
 
 # loading data
 struct_log = '../data/HDFS/HDFS_100k.log_structured.csv'  # The structured log file
@@ -168,13 +175,13 @@ def get_c_gamma(_x, _y):
 
 
 def get_svm_precision(c, gamma):
-    print(str(c) + ", " + str(gamma))
+    # print(str(c) + ", " + str(gamma))
     model = SVM(C=c, gamma=gamma)
     model.fit(x_train, y_train)
-    print('Train validation:')
-    precision, recall, f1 = model.evaluate(x_train, y_train)
+    # print('Train validation:')
+    # precision, recall, f1 = model.evaluate(x_train, y_train)
 
-    print('Test validation:')
+    # print('Test validation:')
     precision, recall, f1 = model.evaluate(x_test, y_test)
     return precision
 
@@ -187,7 +194,7 @@ def set_current_precision(_ant):
         precision = get_svm_precision(c, gamma)
         aco.svm_training_result_matrix[x_index][y_index] = precision
     else:
-        print("This precision is calculated already, no need to do it again.")
+        # print("This precision is calculated already, no need to do it again.")
         precision = aco.svm_training_result_matrix[x_index][y_index]
     # also add this precision to the pheromone matrix - to update the pheromone level
     aco.global_pheromone_matrix[x_index][y_index] = aco.global_pheromone_matrix[x_index][y_index] + precision
@@ -195,6 +202,9 @@ def set_current_precision(_ant):
 
 
 if __name__ == '__main__':
+    #  8.1946
+    tic = time.time()
+
     aco.init_matrix()
     aco.init_pheromone_and_training_matrix()
     aco.init_ants()
@@ -219,7 +229,25 @@ if __name__ == '__main__':
             best_x = ant.current_position_x
             best_y = ant.current_position_y
 
-    for ant in aco.ants:
-        next_x, next_y = ant.get_next_move_by_pheromone(aco.global_ant_position_matrix, aco.global_pheromone_matrix)
-        ant.move_to_next_position(next_x, next_y)
-    print(aco.global_ant_position_matrix)
+    for index in range(0, MAX_ITERATION):
+        for ant in aco.ants:
+            # print(ant)
+            next_x, next_y = ant.get_next_move_by_pheromone(aco.global_ant_position_matrix, aco.global_pheromone_matrix)
+            # print(next_x, next_y)
+            ant.move_to_next_position(next_x, next_y)
+
+            current_precision = set_current_precision(ant)
+            if current_precision > best_precision:
+                best_precision = current_precision
+                best_x = ant.current_position_x
+                best_y = ant.current_position_y
+        # print(aco.global_ant_position_matrix)
+        aco.pheromone_evaporate()
+
+    toc = time.time()
+
+    print(f"Spent {toc - tic:0.4f} seconds")
+
+    print(best_precision, get_c_gamma(best_x, best_y))
+    print(best_x, best_y)
+
